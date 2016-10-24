@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +8,6 @@ import java.util.Map;
  */
 public class CsvImport {
     private Map<String, String> dates = new HashMap<>();
-    private String minimumPrce;
 
     public String[] getSplitLine(String toSplit) {
         String[] afterSplit = toSplit.split("\\, ");
@@ -43,5 +43,36 @@ public class CsvImport {
             }
         }
         return maximum.toString();
+    }
+
+    public BigDecimal getAverageAmount() {
+        BigDecimal count = BigDecimal.ZERO;
+        BigDecimal iter = BigDecimal.ZERO;
+        for (Map.Entry<String, String> entry : dates.entrySet()) {
+            BigDecimal amount = new BigDecimal(entry.getValue());
+            count = count.add(amount);
+            iter = iter.add(BigDecimal.ONE);
+        }
+        return count.divide(iter);
+    }
+
+    public Map<String, BigDecimal> getMaximumAmountInMonth() {
+        Map<String, BigDecimal> maximum = new HashMap<>();
+        for (Map.Entry<String, String> entry : dates.entrySet()) {
+            BigDecimal value = new BigDecimal(entry.getValue());
+            String date = entry.getKey();
+            String[] splitDate = date.split("-");
+            String newKey = splitDate[0] + splitDate[1];
+
+            if(maximum.containsKey(newKey)) {
+                if (maximum.get(newKey).compareTo(value) < 0) {
+                    maximum.replace(newKey, value);
+                }
+            } else {
+                maximum.put(newKey, value);
+            }
+        }
+
+        return maximum;
     }
 }
