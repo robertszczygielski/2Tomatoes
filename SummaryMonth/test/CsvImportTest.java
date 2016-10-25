@@ -3,6 +3,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -78,7 +79,7 @@ public class CsvImportTest {
         BigDecimal result = csvImport.getAverageAmount();
         BigDecimal expected = new BigDecimal(firstAmount);
         expected = expected.add(new BigDecimal(secondAmount));
-        expected = expected.divide(new BigDecimal(2));
+        expected = expected.divide(new BigDecimal("2"));
 
         assertEquals(expected, result);
     }
@@ -87,16 +88,72 @@ public class CsvImportTest {
     public void shouldReturnMapWithMaxAmountInMonth() throws Exception {
         csvImport.add(glueStringsFirst());
         csvImport.add(glueStringsSecond());
-        BigDecimal decemberAmount = new BigDecimal(firstAmount);
         csvImport.add(glueStringsThird());
-        BigDecimal novemberAmount = new BigDecimal(thirdAmount);
-        String[] months1999 = {"199912", "199911"};
+        String[] months1999 = {"1999-12", "1999-11"};
 
         Map<String, BigDecimal> result = csvImport.getMaximumAmountInMonth();
+
+        BigDecimal decemberAmount = new BigDecimal(firstAmount);
         assertEquals(decemberAmount, result.get(months1999[0]));
+
+        BigDecimal novemberAmount = new BigDecimal(thirdAmount);
         assertEquals(novemberAmount, result.get(months1999[1]));
     }
 
+    @Test
+    public void shouldReturnMapWithMinAmountInMonth() throws Exception {
+        csvImport.add(glueStringsFirst());
+        csvImport.add(glueStringsSecond());
+        csvImport.add(glueStringsThird());
+        String[] months1999 = {"1999-12", "1999-11"};
+
+        Map<String, BigDecimal> result = csvImport.getMinimumAmountInMonth();
+
+        BigDecimal decemberAmount = new BigDecimal(secondAmount);
+        assertEquals(decemberAmount, result.get(months1999[0]));
+
+        BigDecimal novemberAmount = new BigDecimal(thirdAmount);
+        assertEquals(novemberAmount, result.get(months1999[1]));
+    }
+
+    @Test
+    public void shouldReturnAvgAmountInMonth() throws Exception {
+        csvImport.add(glueStringsFirst());
+        csvImport.add(glueStringsSecond());
+        csvImport.add(glueStringsThird());
+        String[] months1999 = {"1999-12", "1999-11"};
+
+        Map<String, BigDecimal> result = csvImport.getAverageAmountInMonth();
+
+        BigDecimal decemberAmount = new BigDecimal(firstAmount);
+        decemberAmount = decemberAmount.add(new BigDecimal(secondAmount));
+        decemberAmount = decemberAmount.divide(new BigDecimal("2"));
+        assertEquals(decemberAmount, result.get(months1999[0]));
+
+        BigDecimal novemberAmount = new BigDecimal(thirdAmount);
+        assertEquals(novemberAmount, result.get(months1999[1]));
+    }
+
+    @Test
+    public void shouldReturnEmptyMapForMaximum() throws Exception {
+        Map<String, BigDecimal> result = csvImport.getMaximumAmountInMonth();
+
+        assertEquals(Collections.emptyMap(), result);
+    }
+
+    @Test
+    public void shouldReturnEmptyMapForMinimum() throws Exception {
+        Map<String, BigDecimal> result = csvImport.getMinimumAmountInMonth();
+
+        assertEquals(Collections.emptyMap(), result);
+    }
+
+    @Test
+    public void shouldReturnEmptyMapForAverage() throws Exception {
+        Map<String, BigDecimal> result = csvImport.getAverageAmountInMonth();
+
+        assertEquals(Collections.emptyMap(), result);
+    }
 
     private String glueStringsFirst() {
         return firstDate + ", " + firstAmount;
