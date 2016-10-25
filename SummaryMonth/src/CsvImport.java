@@ -9,7 +9,7 @@ public class CsvImport {
     private Map<String, String> dates = new HashMap<>();
 
     public String[] getSplitLine(String toSplit) {
-        String[] afterSplit = toSplit.split("\\, ");
+        String[] afterSplit = toSplit.split("\\; ");
         return afterSplit;
     }
 

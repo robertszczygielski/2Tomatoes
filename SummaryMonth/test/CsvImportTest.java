@@ -156,14 +156,14 @@ public class CsvImportTest {
     }
 
     private String glueStringsFirst() {
-        return firstDate + ", " + firstAmount;
+        return firstDate + "; " + firstAmount;
     }
 
     private String glueStringsSecond() {
-        return secondDate + ", " + secondAmount;
+        return secondDate + "; " + secondAmount;
     }
 
     private String glueStringsThird() {
-        return thirdDate + ", " + thirdAmount;
+        return thirdDate + "; " + thirdAmount;
     }
 }
