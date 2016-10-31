@@ -31,7 +31,7 @@ public class CsvImportTest {
 
     @Test
     public void shouldSplitDateAndAmount() throws Exception {
-        String[] result = csvImport.getSplitLine(glueStringsFirst());
+        String[] result = csvImport.getSplitLine(glueStrings(firstDate, firstAmount));
 
         assertEquals(firstDate, result[0]);
         assertEquals(firstAmount, result[1]);
@@ -40,14 +40,14 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnDateInCorrectFormat() throws Exception {
-        String[] result = csvImport.getSplitLine(glueStringsFirst());
+        String[] result = csvImport.getSplitLine(glueStrings(firstDate, firstAmount));
         Date date = simpleDateFormat.parse(result[0]);
         assertEquals(simpleDateFormat.parse(firstDate), date);
     }
 
     @Test
     public void shouldReturnAddDateAndAmount() throws Exception {
-        csvImport.add(glueStringsFirst());
+        csvImport.add(glueStrings(firstDate, firstAmount));
         String result = csvImport.getAmountForDate(firstDate);
 
         assertEquals(firstAmount, result);
@@ -55,8 +55,8 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnMinimumAmount() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
         String result = csvImport.getMinimumAmount();
 
         assertEquals(secondAmount, result);
@@ -65,8 +65,8 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnMaximumAmount() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
         String result = csvImport.getMaximumAmount();
 
         assertEquals(firstAmount, result);
@@ -74,8 +74,8 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnAverageAmount() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
         BigDecimal result = csvImport.getAverageAmount();
         BigDecimal expected = new BigDecimal(firstAmount);
         expected = expected.add(new BigDecimal(secondAmount));
@@ -86,9 +86,9 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnMapWithMaxAmountInMonth() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
-        csvImport.add(glueStringsThird());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
+        csvImport.add(glueStrings(thirdDate, thirdAmount));
         String[] months1999 = {"1999-12", "1999-11"};
 
         Map<String, BigDecimal> result = csvImport.getMaximumAmountInMonth();
@@ -102,9 +102,9 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnMapWithMinAmountInMonth() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
-        csvImport.add(glueStringsThird());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
+        csvImport.add(glueStrings(thirdDate, thirdAmount));
         String[] months1999 = {"1999-12", "1999-11"};
 
         Map<String, BigDecimal> result = csvImport.getMinimumAmountInMonth();
@@ -118,9 +118,9 @@ public class CsvImportTest {
 
     @Test
     public void shouldReturnAvgAmountInMonth() throws Exception {
-        csvImport.add(glueStringsFirst());
-        csvImport.add(glueStringsSecond());
-        csvImport.add(glueStringsThird());
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(secondDate, secondAmount));
+        csvImport.add(glueStrings(thirdDate, thirdAmount));
         String[] months1999 = {"1999-12", "1999-11"};
 
         Map<String, BigDecimal> result = csvImport.getAverageAmountInMonth();
@@ -155,15 +155,38 @@ public class CsvImportTest {
         assertEquals(Collections.emptyMap(), result);
     }
 
-    private String glueStringsFirst() {
-        return firstDate + "; " + firstAmount;
+    @Test
+    public void shouldReturnMaximumFirstValueForDuplicatePrices() throws Exception {
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(firstDate, thirdAmount));
+        String[] months1999 = {"1999-12"};
+
+        Map<String, BigDecimal> result = csvImport.getMaximumAmountInMonth();
+
+        BigDecimal decemberAmount = new BigDecimal(firstAmount);
+        assertEquals(decemberAmount, result.get(months1999[0]));
     }
 
-    private String glueStringsSecond() {
-        return secondDate + "; " + secondAmount;
+    @Test
+    public void shouldReturnMinimumFirstValueForDuplicatePrices() throws Exception {
+        csvImport.add(glueStrings(firstDate, firstAmount));
+        csvImport.add(glueStrings(firstDate, thirdAmount));
+        String[] months1999 = {"1999-12"};
+
+        Map<String, BigDecimal> result = csvImport.getMinimumAmountInMonth();
+
+        BigDecimal decemberAmount = new BigDecimal(firstAmount);
+        assertEquals(decemberAmount, result.get(months1999[0]));
     }
 
-    private String glueStringsThird() {
-        return thirdDate + "; " + thirdAmount;
+    private String glueStrings(String... strings) {
+        StringBuilder sb = new StringBuilder();
+        for (String string : strings) {
+            sb.append(string);
+            sb.append("; ");
+        }
+
+        sb.delete(sb.length() - 2, sb.length());
+        return sb.toString();
     }
 }
