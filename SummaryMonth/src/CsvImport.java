@@ -15,7 +15,9 @@ public class CsvImport {
 
     public void add(String toAdd) {
         String[] toMap = getSplitLine(toAdd);
-        dates.put(toMap[0], toMap[1]);
+        if(!dates.containsKey(toMap[0])) {
+            dates.put(toMap[0], toMap[1]);
+        }
     }
 
     public String getAmountForDate(String date) {
