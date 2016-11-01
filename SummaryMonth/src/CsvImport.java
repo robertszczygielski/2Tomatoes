@@ -58,38 +58,34 @@ public class CsvImport {
     }
 
     public Map<String, BigDecimal> getMaximumAmountInMonth() {
-        Map<String, BigDecimal> maximum = new HashMap<>();
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal value = new BigDecimal(entry.getValue());
-            StringBuilder newKey = getPrepareKeyAndValue(entry);
-
-            if(maximum.containsKey(newKey.toString())) {
-                boolean isMaximum = maximum.get(newKey.toString()).compareTo(value) < 0;
-                ifMonthWasRepeated(maximum, value, newKey, isMaximum);
-            } else {
-                ifMonthWasNotRepeated(maximum, value, newKey);
-            }
-        }
-
-        return maximum;
+        return getCollectionWithValuesWho(true);
     }
 
-
     public Map<String,BigDecimal> getMinimumAmountInMonth() {
-        Map<String, BigDecimal> minimum = new HashMap<>();
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal value = new BigDecimal(entry.getValue());
-            StringBuilder newKey = getPrepareKeyAndValue(entry);
+        return getCollectionWithValuesWho(false);
+    }
 
-            if(minimum.containsKey(newKey.toString())) {
-                boolean isMinimum = minimum.get(newKey.toString()).compareTo(value) > 0;
-                ifMonthWasRepeated(minimum, value, newKey, isMinimum);
+    private Map<String, BigDecimal> getCollectionWithValuesWho(boolean areMaximum) {
+        Map<String, BigDecimal> toReturn = new HashMap<>();
+        for (Map.Entry<String, String> entry : dates.entrySet()) {
+            StringBuilder newKey = getPrepareKeyAndValue(entry);
+            BigDecimal firstToCompare = areMaximum
+                    ? new BigDecimal(entry.getValue())
+                    : toReturn.get(newKey.toString());
+            BigDecimal secondToCompare = areMaximum
+                    ? toReturn.get(newKey.toString())
+                    : new BigDecimal(entry.getValue());
+
+            if(toReturn.containsKey(newKey.toString())) {
+                boolean isMaximum = isFirstGreater(firstToCompare, secondToCompare);
+                if(isMaximum) {
+                    ifMonthWasRepeated(toReturn, firstToCompare, newKey);
+                }
             } else {
-                ifMonthWasNotRepeated(minimum, value, newKey);
+                ifMonthWasNotRepeated(toReturn, firstToCompare, newKey);
             }
         }
-
-        return minimum;
+        return toReturn;
     }
 
     public Map<String,BigDecimal> getAverageAmountInMonth() {
@@ -113,17 +109,19 @@ public class CsvImport {
         return average;
     }
 
-    private void ifMonthWasRepeated(Map<String, BigDecimal> maximum, BigDecimal value, StringBuilder newKey, boolean isMaximum) {
-        if (isMaximum) {
-            maximum.replace(
-                    newKey.toString(),
-                    value
-            );
-        }
+    private boolean isFirstGreater(BigDecimal first, BigDecimal second) {
+        return first.compareTo(second) > 0;
     }
 
-    private void ifMonthWasNotRepeated(Map<String, BigDecimal> minimum, BigDecimal value, StringBuilder newKey) {
-        minimum.put(
+    private void ifMonthWasRepeated(Map<String, BigDecimal> collection, BigDecimal value, StringBuilder newKey) {
+        collection.replace(
+                newKey.toString(),
+                value
+        );
+    }
+
+    private void ifMonthWasNotRepeated(Map<String, BigDecimal> collection, BigDecimal value, StringBuilder newKey) {
+        collection.put(
                 newKey.toString(),
                 value
         );
@@ -143,18 +141,12 @@ public class CsvImport {
         BigDecimal oldAmount = average.get(newKey.toString());
         value = value.add(oldAmount);
 
-        average.replace(
-                newKey.toString(),
-                value
-        );
+        ifMonthWasRepeated(average, value, newKey);
 
         BigDecimal newCount = howManyAmount.get(newKey.toString());
         newCount = newCount.add(BigDecimal.ONE);
 
-        howManyAmount.replace(
-                newKey.toString(),
-                newCount
-        );
+        ifMonthWasRepeated(howManyAmount, newCount, newKey);
     }
 
     private void prepareAverage(Map<String, BigDecimal> average, Map<String, BigDecimal> howManyAmount) {
@@ -165,10 +157,7 @@ public class CsvImport {
                     howManyAmount.get(key)
             );
 
-            average.replace(
-                    key,
-                    newAverage
-            );
+            ifMonthWasRepeated(average, newAverage, new StringBuilder(key));
         }
     }
 }
