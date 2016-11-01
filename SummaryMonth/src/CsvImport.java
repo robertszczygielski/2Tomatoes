@@ -25,25 +25,32 @@ public class CsvImport {
     }
 
     public BigDecimal getMinimumAmount() {
-        BigDecimal minimum = new BigDecimal("100000");
-        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
-            BigDecimal current = entry.getValue();
-            if(minimum.compareTo(current) > 0) {
-                minimum = current;
-            }
-        }
-        return minimum;
+        return lookForMaximumValueInCollection(false);
     }
 
     public BigDecimal getMaximumAmount() {
-        BigDecimal maximum = BigDecimal.ZERO;
+        return lookForMaximumValueInCollection(true);
+    }
+
+    private BigDecimal lookForMaximumValueInCollection(boolean lookMax) {
+        BigDecimal toReturn = null;
         for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
             BigDecimal current = entry.getValue();
-            if(maximum.compareTo(current) < 0) {
-                maximum = current;
+            boolean shouldBeMaximum = lookMax
+                    ? compareAndCheckNull(toReturn, current) < 0
+                    : compareAndCheckNull(current, toReturn) < 0;
+            if(toReturn == null || shouldBeMaximum) {
+                toReturn = current;
             }
         }
-        return maximum;
+        return toReturn;
+    }
+
+    private <T extends Comparable> int compareAndCheckNull(T a, T b) {
+        if (a == null || b == null) {
+            return 0;
+        }
+        return a.compareTo(b);
     }
 
     public BigDecimal getAverageAmount() {
