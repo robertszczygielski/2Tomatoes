@@ -6,7 +6,7 @@ import java.util.Map;
  * Created by Robert Szczygielski on 23.10.16.
  */
 public class CsvImport {
-    private Map<String, String> dates = new HashMap<>();
+    private Map<String, BigDecimal> dates = new HashMap<>();
 
     public String[] getSplitLine(String toSplit) {
         String[] afterSplit = toSplit.split("\\; ");
@@ -16,41 +16,41 @@ public class CsvImport {
     public void add(String toAdd) {
         String[] toMap = getSplitLine(toAdd);
         if(!dates.containsKey(toMap[0])) {
-            dates.put(toMap[0], toMap[1]);
+            dates.put(toMap[0], new BigDecimal(toMap[1]));
         }
     }
 
-    public String getAmountForDate(String date) {
-        return (String) dates.get(date);
+    public BigDecimal getAmountForDate(String date) {
+        return dates.get(date);
     }
 
-    public String getMinimumAmount() {
+    public BigDecimal getMinimumAmount() {
         BigDecimal minimum = new BigDecimal("100000");
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal current = new BigDecimal(entry.getValue());
+        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
+            BigDecimal current = entry.getValue();
             if(minimum.compareTo(current) > 0) {
                 minimum = current;
             }
         }
-        return minimum.toString();
+        return minimum;
     }
 
-    public String getMaximumAmount() {
+    public BigDecimal getMaximumAmount() {
         BigDecimal maximum = BigDecimal.ZERO;
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal current = new BigDecimal(entry.getValue());
+        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
+            BigDecimal current = entry.getValue();
             if(maximum.compareTo(current) < 0) {
                 maximum = current;
             }
         }
-        return maximum.toString();
+        return maximum;
     }
 
     public BigDecimal getAverageAmount() {
         BigDecimal count = BigDecimal.ZERO;
         BigDecimal iter = BigDecimal.ZERO;
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal amount = new BigDecimal(entry.getValue());
+        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
+            BigDecimal amount = entry.getValue();
             count = count.add(amount);
             iter = iter.add(BigDecimal.ONE);
         }
@@ -67,14 +67,14 @@ public class CsvImport {
 
     private Map<String, BigDecimal> getCollectionWithValuesWho(boolean areMaximum) {
         Map<String, BigDecimal> toReturn = new HashMap<>();
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
+        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
             StringBuilder newKey = getPrepareKeyAndValue(entry);
             BigDecimal firstToCompare = areMaximum
-                    ? new BigDecimal(entry.getValue())
+                    ? entry.getValue()
                     : toReturn.get(newKey.toString());
             BigDecimal secondToCompare = areMaximum
                     ? toReturn.get(newKey.toString())
-                    : new BigDecimal(entry.getValue());
+                    : entry.getValue();
 
             if(toReturn.containsKey(newKey.toString())) {
                 boolean isMaximum = isFirstGreater(firstToCompare, secondToCompare);
@@ -82,18 +82,18 @@ public class CsvImport {
                     ifMonthWasRepeated(toReturn, firstToCompare, newKey);
                 }
             } else {
-                ifMonthWasNotRepeated(toReturn, firstToCompare, newKey);
+                ifMonthWasNotRepeated(toReturn, areMaximum ? firstToCompare : secondToCompare, newKey);
             }
         }
         return toReturn;
     }
 
-    public Map<String,BigDecimal> getAverageAmountInMonth() {
+    public Map<String, BigDecimal> getAverageAmountInMonth() {
         Map<String, BigDecimal> average = new HashMap<>();
         Map<String, BigDecimal> howManyAmount = new HashMap<>();
 
-        for (Map.Entry<String, String> entry : dates.entrySet()) {
-            BigDecimal value = new BigDecimal(entry.getValue());
+        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
+            BigDecimal value = entry.getValue();
             StringBuilder newKey = getPrepareKeyAndValue(entry);
 
             if(average.containsKey(newKey.toString())) {
@@ -127,7 +127,7 @@ public class CsvImport {
         );
     }
 
-    private StringBuilder getPrepareKeyAndValue(Map.Entry<String, String> entry) {
+    private StringBuilder getPrepareKeyAndValue(Map.Entry<String, BigDecimal> entry) {
         String date = entry.getKey();
         String[] splitDate = date.split("-");
 
