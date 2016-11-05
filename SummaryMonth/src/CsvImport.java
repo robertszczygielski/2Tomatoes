@@ -1,6 +1,8 @@
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by Robert Szczygielski on 23.10.16.
@@ -54,14 +56,13 @@ public class CsvImport {
     }
 
     public BigDecimal getAverageAmount() {
-        BigDecimal count = BigDecimal.ZERO;
-        BigDecimal iter = BigDecimal.ZERO;
-        for (Map.Entry<String, BigDecimal> entry : dates.entrySet()) {
-            BigDecimal amount = entry.getValue();
-            count = count.add(amount);
-            iter = iter.add(BigDecimal.ONE);
-        }
-        return count.divide(iter);
+        BigDecimal count = dates.entrySet()
+                                .stream()
+                                .map(e -> e.getValue())
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal allElements = new BigDecimal(dates.size());
+
+        return count.divide(allElements);
     }
 
     public Map<String, BigDecimal> getMaximumAmountInMonth() {
